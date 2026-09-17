@@ -9,6 +9,19 @@ LoginDialog::LoginDialog(QWidget *parent)
 {
     ui->setupUi(this);
 
+    setWindowTitle("医院门禁系统登录");
+    setStyleSheet(R"(
+        QDialog, QWidget { background: #f5f7fa; color: #263238; font-size: 14px; }
+        QLabel { color: #37474f; }
+        QLineEdit { background: white; border: 1px solid #cfd8dc; border-radius: 6px;
+                    padding: 7px 10px; }
+        QLineEdit:focus { border: 1px solid #1976d2; }
+        QPushButton { background: #1976d2; color: white; border: none; border-radius: 6px;
+                      padding: 8px 20px; min-height: 24px; }
+        QPushButton:hover { background: #1565c0; }
+        QPushButton:pressed { background: #0d47a1; }
+    )");
+
 
     ui->stackedWidget->setCurrentWidget(ui->page_login);
 }

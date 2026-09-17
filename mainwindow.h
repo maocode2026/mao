@@ -27,6 +27,7 @@ private slots:
     void showHomePage();
     void showEmployeePage();
     void showEmployeeManagementPage();
+    void showAccessLogPage();
     void showAccessPage();
     void captureEmployeeFace();
     void selectEmployeeImage();
@@ -41,6 +42,8 @@ private slots:
     void editSelectedEmployee();
     void disableSelectedEmployee();
     void deleteSelectedEmployee();
+    void refreshAccessLogTable();
+    void resetAccessLogFilters();
 
 private:
     bool captureFromCamera(cv::Mat &image, QString &errorMessage);
@@ -53,12 +56,16 @@ private:
     void writeAccessLogWithDebounce(const EmployeeFaceRecord *employee,
                                     const QString &result);
     int selectedEmployeeIndex() const;
+    bool areEyesOpen(const cv::Mat &frame);
+    void resetBlinkDetection();
 
     Ui::MainWindow *ui;
     cv::Ptr<cv::FaceDetectorYN> faceDetector;
     cv::Ptr<cv::FaceRecognizerSF> faceRecognizer;
+    cv::CascadeClassifier eyeCascade;
     cv::Mat employeeFaceFeature;
     cv::Mat accessFaceFeature;
+    cv::Mat currentAccessFrame;
     cv::VideoCapture accessCamera;
     QTimer *accessTimer;
     QElapsedTimer logDebounceTimer;
@@ -67,6 +74,11 @@ private:
     QList<EmployeeFaceRecord> activeEmployees;
     QList<EmployeeFaceRecord> managementEmployees;
     double accessMatchThreshold = DefaultFaceMatchThreshold;
+    enum class BlinkState { WaitingOpen, WaitingClosed, WaitingReopen };
+    BlinkState blinkState = BlinkState::WaitingOpen;
+    int blinkStableFrames = 0;
+    QString blinkEmployeeNo;
+    bool imageRecognitionMode = false;
 };
 
 #endif // MAINWINDOW_H

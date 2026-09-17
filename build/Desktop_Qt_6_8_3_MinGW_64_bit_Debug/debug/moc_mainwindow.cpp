@@ -42,6 +42,7 @@ static constexpr auto qt_meta_stringdata_ZN10MainWindowE = QtMocHelpers::stringD
     "",
     "showEmployeePage",
     "showEmployeeManagementPage",
+    "showAccessLogPage",
     "showAccessPage",
     "captureEmployeeFace",
     "selectEmployeeImage",
@@ -55,7 +56,9 @@ static constexpr auto qt_meta_stringdata_ZN10MainWindowE = QtMocHelpers::stringD
     "resetEmployeeFilters",
     "editSelectedEmployee",
     "disableSelectedEmployee",
-    "deleteSelectedEmployee"
+    "deleteSelectedEmployee",
+    "refreshAccessLogTable",
+    "resetAccessLogFilters"
 );
 #else  // !QT_MOC_HAS_STRINGDATA
 #error "qtmochelpers.h not found or too old."
@@ -67,7 +70,7 @@ Q_CONSTINIT static const uint qt_meta_data_ZN10MainWindowE[] = {
       12,       // revision
        0,       // classname
        0,    0, // classinfo
-      17,   14, // methods
+      20,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -75,25 +78,31 @@ Q_CONSTINIT static const uint qt_meta_data_ZN10MainWindowE[] = {
        0,       // signalCount
 
  // slots: name, argc, parameters, tag, flags, initial metatype offsets
-       1,    0,  116,    2, 0x08,    1 /* Private */,
-       3,    0,  117,    2, 0x08,    2 /* Private */,
-       4,    0,  118,    2, 0x08,    3 /* Private */,
-       5,    0,  119,    2, 0x08,    4 /* Private */,
-       6,    0,  120,    2, 0x08,    5 /* Private */,
-       7,    0,  121,    2, 0x08,    6 /* Private */,
-       8,    0,  122,    2, 0x08,    7 /* Private */,
-       9,    0,  123,    2, 0x08,    8 /* Private */,
-      10,    0,  124,    2, 0x08,    9 /* Private */,
-      11,    0,  125,    2, 0x08,   10 /* Private */,
-      12,    0,  126,    2, 0x08,   11 /* Private */,
-      13,    0,  127,    2, 0x08,   12 /* Private */,
-      14,    0,  128,    2, 0x08,   13 /* Private */,
-      15,    0,  129,    2, 0x08,   14 /* Private */,
-      16,    0,  130,    2, 0x08,   15 /* Private */,
-      17,    0,  131,    2, 0x08,   16 /* Private */,
-      18,    0,  132,    2, 0x08,   17 /* Private */,
+       1,    0,  134,    2, 0x08,    1 /* Private */,
+       3,    0,  135,    2, 0x08,    2 /* Private */,
+       4,    0,  136,    2, 0x08,    3 /* Private */,
+       5,    0,  137,    2, 0x08,    4 /* Private */,
+       6,    0,  138,    2, 0x08,    5 /* Private */,
+       7,    0,  139,    2, 0x08,    6 /* Private */,
+       8,    0,  140,    2, 0x08,    7 /* Private */,
+       9,    0,  141,    2, 0x08,    8 /* Private */,
+      10,    0,  142,    2, 0x08,    9 /* Private */,
+      11,    0,  143,    2, 0x08,   10 /* Private */,
+      12,    0,  144,    2, 0x08,   11 /* Private */,
+      13,    0,  145,    2, 0x08,   12 /* Private */,
+      14,    0,  146,    2, 0x08,   13 /* Private */,
+      15,    0,  147,    2, 0x08,   14 /* Private */,
+      16,    0,  148,    2, 0x08,   15 /* Private */,
+      17,    0,  149,    2, 0x08,   16 /* Private */,
+      18,    0,  150,    2, 0x08,   17 /* Private */,
+      19,    0,  151,    2, 0x08,   18 /* Private */,
+      20,    0,  152,    2, 0x08,   19 /* Private */,
+      21,    0,  153,    2, 0x08,   20 /* Private */,
 
  // slots: parameters
+    QMetaType::Void,
+    QMetaType::Void,
+    QMetaType::Void,
     QMetaType::Void,
     QMetaType::Void,
     QMetaType::Void,
@@ -130,6 +139,8 @@ Q_CONSTINIT const QMetaObject MainWindow::staticMetaObject = { {
         QtPrivate::TypeAndForceComplete<void, std::false_type>,
         // method 'showEmployeeManagementPage'
         QtPrivate::TypeAndForceComplete<void, std::false_type>,
+        // method 'showAccessLogPage'
+        QtPrivate::TypeAndForceComplete<void, std::false_type>,
         // method 'showAccessPage'
         QtPrivate::TypeAndForceComplete<void, std::false_type>,
         // method 'captureEmployeeFace'
@@ -157,6 +168,10 @@ Q_CONSTINIT const QMetaObject MainWindow::staticMetaObject = { {
         // method 'disableSelectedEmployee'
         QtPrivate::TypeAndForceComplete<void, std::false_type>,
         // method 'deleteSelectedEmployee'
+        QtPrivate::TypeAndForceComplete<void, std::false_type>,
+        // method 'refreshAccessLogTable'
+        QtPrivate::TypeAndForceComplete<void, std::false_type>,
+        // method 'resetAccessLogFilters'
         QtPrivate::TypeAndForceComplete<void, std::false_type>
     >,
     nullptr
@@ -170,20 +185,23 @@ void MainWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, 
         case 0: _t->showHomePage(); break;
         case 1: _t->showEmployeePage(); break;
         case 2: _t->showEmployeeManagementPage(); break;
-        case 3: _t->showAccessPage(); break;
-        case 4: _t->captureEmployeeFace(); break;
-        case 5: _t->selectEmployeeImage(); break;
-        case 6: _t->saveEmployee(); break;
-        case 7: _t->startAccessRecognition(); break;
-        case 8: _t->stopAccessRecognition(); break;
-        case 9: _t->updateAccessFrame(); break;
-        case 10: _t->recognizeAccessImage(); break;
-        case 11: _t->recognizeAccessFace(); break;
-        case 12: _t->refreshEmployeeTable(); break;
-        case 13: _t->resetEmployeeFilters(); break;
-        case 14: _t->editSelectedEmployee(); break;
-        case 15: _t->disableSelectedEmployee(); break;
-        case 16: _t->deleteSelectedEmployee(); break;
+        case 3: _t->showAccessLogPage(); break;
+        case 4: _t->showAccessPage(); break;
+        case 5: _t->captureEmployeeFace(); break;
+        case 6: _t->selectEmployeeImage(); break;
+        case 7: _t->saveEmployee(); break;
+        case 8: _t->startAccessRecognition(); break;
+        case 9: _t->stopAccessRecognition(); break;
+        case 10: _t->updateAccessFrame(); break;
+        case 11: _t->recognizeAccessImage(); break;
+        case 12: _t->recognizeAccessFace(); break;
+        case 13: _t->refreshEmployeeTable(); break;
+        case 14: _t->resetEmployeeFilters(); break;
+        case 15: _t->editSelectedEmployee(); break;
+        case 16: _t->disableSelectedEmployee(); break;
+        case 17: _t->deleteSelectedEmployee(); break;
+        case 18: _t->refreshAccessLogTable(); break;
+        case 19: _t->resetAccessLogFilters(); break;
         default: ;
         }
     }
@@ -209,14 +227,14 @@ int MainWindow::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 17)
+        if (_id < 20)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 17;
+        _id -= 20;
     }
     if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
-        if (_id < 17)
+        if (_id < 20)
             *reinterpret_cast<QMetaType *>(_a[0]) = QMetaType();
-        _id -= 17;
+        _id -= 20;
     }
     return _id;
 }

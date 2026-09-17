@@ -30,6 +30,19 @@ bool execSqlWithRetry(QSqlQuery &query, const QString &sql, int retryCount = 20)
     }
     return false;
 }
+
+bool execPreparedWithRetry(QSqlQuery &query, int retryCount = 20)
+{
+    for (int attempt = 0; attempt <= retryCount; ++attempt)
+    {
+        if (query.exec())
+            return true;
+        if (!isDatabaseBusy(query.lastError()) || attempt == retryCount)
+            return false;
+        QThread::msleep(250);
+    }
+    return false;
+}
 }
 
 
@@ -57,9 +70,9 @@ MyDatabase::MyDatabase(QObject *parent)
     if(!ok1)
     {
         qDebug()<<"create table error:"<<query.lastError().text();
-        return;
     }
-    qDebug() << "userinfo表创建成功/已存在";
+    else
+        qDebug() << "userinfo表创建成功/已存在";
 
     // 保留旧 employees 表，便于兼容此前版本的数据。
     sql = R"(
@@ -328,11 +341,14 @@ bool MyDatabase::initializeAccessControlTables(QString *errorMessage)
             *errorMessage = "迁移旧员工数据失败：" + query.lastError().text();
         return false;
     }
+    accessControlTablesReady = true;
     return true;
 }
 
 bool MyDatabase::addEmployee(const EmployeeFaceRecord &employee, QString *errorMessage)
 {
+    if (!initializeAccessControlTables(errorMessage))
+        return false;
     QSqlQuery query(db);
     const QString insertSql = staffFaceHasLegacyEmployeeNo
         ? R"(
@@ -357,7 +373,7 @@ bool MyDatabase::addEmployee(const EmployeeFaceRecord &employee, QString *errorM
     query.bindValue(":access_areas", employee.accessAreas.join(','));
     query.bindValue(":face_feature", employee.faceFeature);
 
-    if (!query.exec())
+    if (!execPreparedWithRetry(query))
     {
         const QString databaseError = query.lastError().text();
         if (errorMessage)
@@ -379,6 +395,8 @@ QList<EmployeeFaceRecord> MyDatabase::queryEmployees(const QString &department,
                                                      QString *errorMessage)
 {
     QList<EmployeeFaceRecord> employees;
+    if (!initializeAccessControlTables(errorMessage))
+        return employees;
     QString sql = R"(
         select staff_id, name, department, position, phone,
                status, access_areas, face_feature
@@ -400,7 +418,7 @@ QList<EmployeeFaceRecord> MyDatabase::queryEmployees(const QString &department,
         query.bindValue(":position", position);
     if (!status.isEmpty())
         query.bindValue(":status", status);
-    if (!query.exec())
+    if (!execPreparedWithRetry(query))
     {
         if (errorMessage)
             *errorMessage = "查询员工档案失败：" + query.lastError().text();
@@ -427,6 +445,8 @@ bool MyDatabase::updateEmployee(const EmployeeFaceRecord &employee,
                                 bool updateFaceFeature,
                                 QString *errorMessage)
 {
+    if (!initializeAccessControlTables(errorMessage))
+        return false;
     QString sql = R"(
         update staff_face
         set name=:name, department=:department, position=:position,
@@ -448,7 +468,7 @@ bool MyDatabase::updateEmployee(const EmployeeFaceRecord &employee,
     if (updateFaceFeature)
         query.bindValue(":face_feature", employee.faceFeature);
 
-    if (!query.exec() || query.numRowsAffected() != 1)
+    if (!execPreparedWithRetry(query) || query.numRowsAffected() != 1)
     {
         if (errorMessage)
             *errorMessage = "更新员工档案失败：" + query.lastError().text();
@@ -459,25 +479,28 @@ bool MyDatabase::updateEmployee(const EmployeeFaceRecord &employee,
 
 bool MyDatabase::disableEmployee(const QString &staffId, QString *errorMessage)
 {
+    if (!initializeAccessControlTables(errorMessage))
+        return false;
     QSqlQuery query(db);
     query.prepare("update staff_face set status='离职' where staff_id=:staff_id;");
     query.bindValue(":staff_id", staffId);
-    if (!query.exec() || query.numRowsAffected() != 1)
+    if (!execPreparedWithRetry(query) || query.numRowsAffected() != 1)
     {
         if (errorMessage)
             *errorMessage = "禁用员工失败：" + query.lastError().text();
         return false;
     }
-    accessControlTablesReady = true;
     return true;
 }
 
 bool MyDatabase::deleteEmployee(const QString &staffId, QString *errorMessage)
 {
+    if (!initializeAccessControlTables(errorMessage))
+        return false;
     QSqlQuery query(db);
     query.prepare("delete from staff_face where staff_id=:staff_id;");
     query.bindValue(":staff_id", staffId);
-    if (!query.exec() || query.numRowsAffected() != 1)
+    if (!execPreparedWithRetry(query) || query.numRowsAffected() != 1)
     {
         if (errorMessage)
             *errorMessage = "删除员工失败：" + query.lastError().text();
@@ -490,6 +513,8 @@ bool MyDatabase::deleteEmployee(const QString &staffId, QString *errorMessage)
 QList<EmployeeFaceRecord> MyDatabase::queryEmployeeFaces(QString *errorMessage)
 {
     QList<EmployeeFaceRecord> employees;
+    if (!initializeAccessControlTables(errorMessage))
+        return employees;
     QSqlQuery query(db);
     if (!query.exec(R"(
         select staff_id, name, department, position, phone,
@@ -523,10 +548,12 @@ QList<EmployeeFaceRecord> MyDatabase::queryEmployeeFaces(QString *errorMessage)
 
 double MyDatabase::faceMatchThreshold(QString *errorMessage)
 {
+    if (!initializeAccessControlTables(errorMessage))
+        return 0.363;
     QSqlQuery query(db);
     query.prepare("select config_value from sys_config where config_key=:key;");
     query.bindValue(":key", "face_match_threshold");
-    if (!query.exec())
+    if (!execPreparedWithRetry(query))
     {
         if (errorMessage)
             *errorMessage = "读取人脸匹配阈值失败：" + query.lastError().text();
@@ -545,6 +572,8 @@ double MyDatabase::faceMatchThreshold(QString *errorMessage)
 
 bool MyDatabase::addAccessLog(const AccessLogRecord &record, QString *errorMessage)
 {
+    if (!initializeAccessControlTables(errorMessage))
+        return false;
     QSqlQuery query(db);
     query.prepare(R"(
         insert into access_log(access_time, employee_no, name, department,
@@ -559,7 +588,7 @@ bool MyDatabase::addAccessLog(const AccessLogRecord &record, QString *errorMessa
     query.bindValue(":access_area", record.accessArea);
     query.bindValue(":result", record.result);
 
-    if (!query.exec())
+    if (!execPreparedWithRetry(query))
     {
         if (errorMessage)
             *errorMessage = "写入通行日志失败：" + query.lastError().text();
@@ -567,6 +596,51 @@ bool MyDatabase::addAccessLog(const AccessLogRecord &record, QString *errorMessa
         return false;
     }
     return true;
+}
+
+QList<AccessLogRecord> MyDatabase::queryAccessLogs(const QString &accessArea,
+                                                   const QString &result,
+                                                   QString *errorMessage)
+{
+    QList<AccessLogRecord> logs;
+    if (!initializeAccessControlTables(errorMessage))
+        return logs;
+
+    QString sql = R"(
+        select access_time, employee_no, name, department, access_area, result
+        from access_log where 1=1
+    )";
+    if (!accessArea.isEmpty())
+        sql += " and access_area=:access_area";
+    if (!result.isEmpty())
+        sql += " and result=:result";
+    sql += " order by id desc;";
+
+    QSqlQuery query(db);
+    query.prepare(sql);
+    if (!accessArea.isEmpty())
+        query.bindValue(":access_area", accessArea);
+    if (!result.isEmpty())
+        query.bindValue(":result", result);
+    if (!execPreparedWithRetry(query))
+    {
+        if (errorMessage)
+            *errorMessage = "查询门禁日志失败：" + query.lastError().text();
+        return logs;
+    }
+
+    while (query.next())
+    {
+        AccessLogRecord record;
+        record.accessTime = query.value(0).toString();
+        record.employeeNo = query.value(1).toString();
+        record.name = query.value(2).toString();
+        record.department = query.value(3).toString();
+        record.accessArea = query.value(4).toString();
+        record.result = query.value(5).toString();
+        logs.append(record);
+    }
+    return logs;
 }
 
 

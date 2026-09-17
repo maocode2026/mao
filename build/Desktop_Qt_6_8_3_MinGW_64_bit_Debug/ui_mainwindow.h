@@ -45,6 +45,8 @@ public:
     QSpacerItem *homeMidSpacer;
     QPushButton *employeeManagementButton;
     QSpacerItem *homeManagementSpacer;
+    QPushButton *accessLogButton;
+    QSpacerItem *homeLogSpacer;
     QPushButton *accessButton;
     QSpacerItem *homeBottomSpacer;
     QWidget *employeePage;
@@ -101,6 +103,21 @@ public:
     QPushButton *editEmployeeButton;
     QPushButton *disableEmployeeButton;
     QPushButton *deleteEmployeeButton;
+    QWidget *accessLogPage;
+    QVBoxLayout *accessLogPageLayout;
+    QHBoxLayout *accessLogHeaderLayout;
+    QPushButton *accessLogBackButton;
+    QLabel *accessLogTitleLabel;
+    QSpacerItem *accessLogHeaderSpacer;
+    QHBoxLayout *accessLogFilterLayout;
+    QLabel *logAreaLabel;
+    QComboBox *logAreaCombo;
+    QLabel *logResultLabel;
+    QComboBox *logResultCombo;
+    QPushButton *queryLogButton;
+    QPushButton *resetLogButton;
+    QSpacerItem *accessLogFilterSpacer;
+    QTableWidget *accessLogTable;
     QWidget *accessPage;
     QVBoxLayout *accessPageLayout;
     QHBoxLayout *accessHeaderLayout;
@@ -176,6 +193,17 @@ public:
         homeManagementSpacer = new QSpacerItem(20, 35, QSizePolicy::Policy::Minimum, QSizePolicy::Policy::Expanding);
 
         homeLayout->addItem(homeManagementSpacer);
+
+        accessLogButton = new QPushButton(homePage);
+        accessLogButton->setObjectName("accessLogButton");
+        accessLogButton->setMinimumSize(QSize(0, 90));
+        accessLogButton->setFont(font1);
+
+        homeLayout->addWidget(accessLogButton);
+
+        homeLogSpacer = new QSpacerItem(20, 35, QSizePolicy::Policy::Minimum, QSizePolicy::Policy::Expanding);
+
+        homeLayout->addItem(homeLogSpacer);
 
         accessButton = new QPushButton(homePage);
         accessButton->setObjectName("accessButton");
@@ -481,6 +509,103 @@ public:
         employeeManagementLayout->addLayout(managementButtonsLayout);
 
         stackedWidget->addWidget(employeeManagementPage);
+        accessLogPage = new QWidget();
+        accessLogPage->setObjectName("accessLogPage");
+        accessLogPageLayout = new QVBoxLayout(accessLogPage);
+        accessLogPageLayout->setObjectName("accessLogPageLayout");
+        accessLogHeaderLayout = new QHBoxLayout();
+        accessLogHeaderLayout->setObjectName("accessLogHeaderLayout");
+        accessLogBackButton = new QPushButton(accessLogPage);
+        accessLogBackButton->setObjectName("accessLogBackButton");
+
+        accessLogHeaderLayout->addWidget(accessLogBackButton);
+
+        accessLogTitleLabel = new QLabel(accessLogPage);
+        accessLogTitleLabel->setObjectName("accessLogTitleLabel");
+        accessLogTitleLabel->setFont(font2);
+        accessLogTitleLabel->setAlignment(Qt::AlignmentFlag::AlignCenter);
+
+        accessLogHeaderLayout->addWidget(accessLogTitleLabel);
+
+        accessLogHeaderSpacer = new QSpacerItem(80, 20, QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Minimum);
+
+        accessLogHeaderLayout->addItem(accessLogHeaderSpacer);
+
+
+        accessLogPageLayout->addLayout(accessLogHeaderLayout);
+
+        accessLogFilterLayout = new QHBoxLayout();
+        accessLogFilterLayout->setObjectName("accessLogFilterLayout");
+        logAreaLabel = new QLabel(accessLogPage);
+        logAreaLabel->setObjectName("logAreaLabel");
+
+        accessLogFilterLayout->addWidget(logAreaLabel);
+
+        logAreaCombo = new QComboBox(accessLogPage);
+        logAreaCombo->addItem(QString());
+        logAreaCombo->addItem(QString());
+        logAreaCombo->addItem(QString());
+        logAreaCombo->addItem(QString());
+        logAreaCombo->setObjectName("logAreaCombo");
+
+        accessLogFilterLayout->addWidget(logAreaCombo);
+
+        logResultLabel = new QLabel(accessLogPage);
+        logResultLabel->setObjectName("logResultLabel");
+
+        accessLogFilterLayout->addWidget(logResultLabel);
+
+        logResultCombo = new QComboBox(accessLogPage);
+        logResultCombo->addItem(QString());
+        logResultCombo->addItem(QString());
+        logResultCombo->addItem(QString());
+        logResultCombo->addItem(QString());
+        logResultCombo->setObjectName("logResultCombo");
+
+        accessLogFilterLayout->addWidget(logResultCombo);
+
+        queryLogButton = new QPushButton(accessLogPage);
+        queryLogButton->setObjectName("queryLogButton");
+
+        accessLogFilterLayout->addWidget(queryLogButton);
+
+        resetLogButton = new QPushButton(accessLogPage);
+        resetLogButton->setObjectName("resetLogButton");
+
+        accessLogFilterLayout->addWidget(resetLogButton);
+
+        accessLogFilterSpacer = new QSpacerItem(40, 20, QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Minimum);
+
+        accessLogFilterLayout->addItem(accessLogFilterSpacer);
+
+
+        accessLogPageLayout->addLayout(accessLogFilterLayout);
+
+        accessLogTable = new QTableWidget(accessLogPage);
+        if (accessLogTable->columnCount() < 6)
+            accessLogTable->setColumnCount(6);
+        QTableWidgetItem *__qtablewidgetitem7 = new QTableWidgetItem();
+        accessLogTable->setHorizontalHeaderItem(0, __qtablewidgetitem7);
+        QTableWidgetItem *__qtablewidgetitem8 = new QTableWidgetItem();
+        accessLogTable->setHorizontalHeaderItem(1, __qtablewidgetitem8);
+        QTableWidgetItem *__qtablewidgetitem9 = new QTableWidgetItem();
+        accessLogTable->setHorizontalHeaderItem(2, __qtablewidgetitem9);
+        QTableWidgetItem *__qtablewidgetitem10 = new QTableWidgetItem();
+        accessLogTable->setHorizontalHeaderItem(3, __qtablewidgetitem10);
+        QTableWidgetItem *__qtablewidgetitem11 = new QTableWidgetItem();
+        accessLogTable->setHorizontalHeaderItem(4, __qtablewidgetitem11);
+        QTableWidgetItem *__qtablewidgetitem12 = new QTableWidgetItem();
+        accessLogTable->setHorizontalHeaderItem(5, __qtablewidgetitem12);
+        accessLogTable->setObjectName("accessLogTable");
+        accessLogTable->setEditTriggers(QAbstractItemView::EditTrigger::NoEditTriggers);
+        accessLogTable->setSelectionBehavior(QAbstractItemView::SelectionBehavior::SelectRows);
+        accessLogTable->setSelectionMode(QAbstractItemView::SelectionMode::SingleSelection);
+        accessLogTable->setAlternatingRowColors(true);
+        accessLogTable->setColumnCount(6);
+
+        accessLogPageLayout->addWidget(accessLogTable);
+
+        stackedWidget->addWidget(accessLogPage);
         accessPage = new QWidget();
         accessPage->setObjectName("accessPage");
         accessPageLayout = new QVBoxLayout(accessPage);
@@ -611,6 +736,7 @@ public:
         homeTitleLabel->setText(QCoreApplication::translate("MainWindow", "\345\214\273\351\231\242\345\221\230\345\267\245\351\227\250\347\246\201\347\256\241\347\220\206", nullptr));
         newEmployeeButton->setText(QCoreApplication::translate("MainWindow", "\346\226\260\345\242\236\345\221\230\345\267\245", nullptr));
         employeeManagementButton->setText(QCoreApplication::translate("MainWindow", "\345\221\230\345\267\245\346\241\243\346\241\210\347\256\241\347\220\206", nullptr));
+        accessLogButton->setText(QCoreApplication::translate("MainWindow", "\346\237\245\347\234\213\351\227\250\347\246\201\350\256\277\351\227\256\346\227\245\345\277\227", nullptr));
         accessButton->setText(QCoreApplication::translate("MainWindow", "\351\227\250\347\246\201\344\272\272\350\204\270\350\257\206\345\210\253", nullptr));
         employeeBackButton->setText(QCoreApplication::translate("MainWindow", "\350\277\224\345\233\236\344\270\273\351\241\265", nullptr));
         employeeTitleLabel->setText(QCoreApplication::translate("MainWindow", "\346\226\260\345\242\236\345\221\230\345\267\245", nullptr));
@@ -657,6 +783,34 @@ public:
         editEmployeeButton->setText(QCoreApplication::translate("MainWindow", "\347\274\226\350\276\221\345\221\230\345\267\245", nullptr));
         disableEmployeeButton->setText(QCoreApplication::translate("MainWindow", "\347\246\201\347\224\250\345\221\230\345\267\245", nullptr));
         deleteEmployeeButton->setText(QCoreApplication::translate("MainWindow", "\345\210\240\351\231\244\345\221\230\345\267\245", nullptr));
+        accessLogBackButton->setText(QCoreApplication::translate("MainWindow", "\350\277\224\345\233\236\344\270\273\351\241\265", nullptr));
+        accessLogTitleLabel->setText(QCoreApplication::translate("MainWindow", "\351\227\250\347\246\201\350\256\277\351\227\256\346\227\245\345\277\227", nullptr));
+        logAreaLabel->setText(QCoreApplication::translate("MainWindow", "\350\256\277\351\227\256\345\214\272\345\237\237\357\274\232", nullptr));
+        logAreaCombo->setItemText(0, QCoreApplication::translate("MainWindow", "\345\205\250\351\203\250\345\214\272\345\237\237", nullptr));
+        logAreaCombo->setItemText(1, QCoreApplication::translate("MainWindow", "\350\215\257\346\210\277", nullptr));
+        logAreaCombo->setItemText(2, QCoreApplication::translate("MainWindow", "\345\214\273\347\224\237\345\212\236\345\205\254\345\256\244", nullptr));
+        logAreaCombo->setItemText(3, QCoreApplication::translate("MainWindow", "\350\200\227\346\235\220\345\272\223\346\210\277", nullptr));
+
+        logResultLabel->setText(QCoreApplication::translate("MainWindow", "\351\200\232\350\241\214\347\273\223\346\236\234\357\274\232", nullptr));
+        logResultCombo->setItemText(0, QCoreApplication::translate("MainWindow", "\345\205\250\351\203\250\347\273\223\346\236\234", nullptr));
+        logResultCombo->setItemText(1, QCoreApplication::translate("MainWindow", "\346\224\276\350\241\214", nullptr));
+        logResultCombo->setItemText(2, QCoreApplication::translate("MainWindow", "\346\227\240\346\235\203\351\231\220\346\213\222\347\273\235", nullptr));
+        logResultCombo->setItemText(3, QCoreApplication::translate("MainWindow", "\350\257\206\345\210\253\345\244\261\350\264\245", nullptr));
+
+        queryLogButton->setText(QCoreApplication::translate("MainWindow", "\346\237\245\350\257\242", nullptr));
+        resetLogButton->setText(QCoreApplication::translate("MainWindow", "\345\210\267\346\226\260/\351\207\215\347\275\256", nullptr));
+        QTableWidgetItem *___qtablewidgetitem7 = accessLogTable->horizontalHeaderItem(0);
+        ___qtablewidgetitem7->setText(QCoreApplication::translate("MainWindow", "\351\200\232\350\241\214\346\227\266\351\227\264", nullptr));
+        QTableWidgetItem *___qtablewidgetitem8 = accessLogTable->horizontalHeaderItem(1);
+        ___qtablewidgetitem8->setText(QCoreApplication::translate("MainWindow", "\345\221\230\345\267\245\345\267\245\345\217\267", nullptr));
+        QTableWidgetItem *___qtablewidgetitem9 = accessLogTable->horizontalHeaderItem(2);
+        ___qtablewidgetitem9->setText(QCoreApplication::translate("MainWindow", "\345\247\223\345\220\215", nullptr));
+        QTableWidgetItem *___qtablewidgetitem10 = accessLogTable->horizontalHeaderItem(3);
+        ___qtablewidgetitem10->setText(QCoreApplication::translate("MainWindow", "\347\247\221\345\256\244", nullptr));
+        QTableWidgetItem *___qtablewidgetitem11 = accessLogTable->horizontalHeaderItem(4);
+        ___qtablewidgetitem11->setText(QCoreApplication::translate("MainWindow", "\350\256\277\351\227\256\345\214\272\345\237\237", nullptr));
+        QTableWidgetItem *___qtablewidgetitem12 = accessLogTable->horizontalHeaderItem(5);
+        ___qtablewidgetitem12->setText(QCoreApplication::translate("MainWindow", "\351\200\232\350\241\214\347\273\223\346\236\234", nullptr));
         accessBackButton->setText(QCoreApplication::translate("MainWindow", "\350\277\224\345\233\236\344\270\273\351\241\265", nullptr));
         accessTitleLabel->setText(QCoreApplication::translate("MainWindow", "\351\227\250\347\246\201\344\272\272\350\204\270\350\257\206\345\210\253", nullptr));
         accessAreaLabel->setText(QCoreApplication::translate("MainWindow", "\345\275\223\345\211\215\351\227\250\347\246\201\345\214\272\345\237\237\357\274\232", nullptr));

@@ -25,6 +25,7 @@ struct EmployeeFaceRecord
 
 struct AccessLogRecord
 {
+    QString accessTime;
     QString employeeNo;
     QString name;
     QString department;
@@ -84,6 +85,9 @@ public:
     QList<EmployeeFaceRecord> queryEmployeeFaces(QString *errorMessage = nullptr);
     double faceMatchThreshold(QString *errorMessage = nullptr);
     bool addAccessLog(const AccessLogRecord &record, QString *errorMessage = nullptr);
+    QList<AccessLogRecord> queryAccessLogs(const QString &accessArea,
+                                           const QString &result,
+                                           QString *errorMessage = nullptr);
 private:
     bool initializeAccessControlTables(QString *errorMessage = nullptr);
     explicit MyDatabase(QObject *parent = nullptr);

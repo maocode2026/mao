@@ -18,12 +18,14 @@
 #include <QRegularExpressionValidator>
 
 #include <cstring>
+#include <algorithm>
 #include <limits>
 
 namespace
 {
 const char *FaceDetectionModel = "D:/opencv4.5.5-MinGw7.3.0/face_detection_yunet_2022mar.onnx";
 const char *FaceRecognitionModel = "D:/opencv4.5.5-MinGw7.3.0/face_recognition_sface_2021dec.onnx";
+const char *EyeCascadeModel = "D:/opencv4.5.5-MinGw7.3.0/etc/haarcascades/haarcascade_eye_tree_eyeglasses.xml";
 
 QImage matToQImage(const cv::Mat &image)
 {
@@ -48,6 +50,29 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     setWindowTitle("医院门禁人脸识别系统");
+    setStyleSheet(R"(
+        QMainWindow, QWidget { background: #f5f7fa; color: #263238; font-size: 14px; }
+        QGroupBox { background: white; border: 1px solid #dfe5ec; border-radius: 8px;
+                    margin-top: 12px; padding: 12px; font-weight: 600; }
+        QGroupBox::title { subcontrol-origin: margin; left: 12px; padding: 0 5px; }
+        QPushButton { background: #1976d2; color: white; border: none; border-radius: 6px;
+                      padding: 8px 18px; min-height: 24px; }
+        QPushButton:hover { background: #1565c0; }
+        QPushButton:pressed { background: #0d47a1; }
+        QPushButton:disabled { background: #b0bec5; }
+        QLineEdit, QComboBox { background: white; border: 1px solid #cfd8dc;
+                              border-radius: 5px; padding: 6px; min-height: 24px; }
+        QLineEdit:focus, QComboBox:focus { border: 1px solid #1976d2; }
+        QTableWidget { background: white; alternate-background-color: #f6f9fc;
+                       border: 1px solid #dfe5ec; gridline-color: #edf1f5; }
+        QTableWidget::item { padding: 6px; }
+        QTableWidget::item:selected { background: #1976d2; color: white; }
+        QTableWidget::item:selected:active { background: #1565c0; color: white; }
+        QTableWidget::item:selected:!active { background: #42a5f5; color: white; }
+        QHeaderView::section { background: #eaf2fb; border: none; padding: 8px; font-weight: 600; }
+        QLabel#accessFaceLabel, QLabel#employeeFaceLabel, QLabel#accessResultLabel {
+            background: white; border: 1px solid #dfe5ec; border-radius: 8px; }
+    )");
 
     ui->departmentCombo->addItems({"内科", "外科", "急诊", "药房", "行政"});
     ui->positionCombo->addItems({"医生", "护士", "药师", "行政"});
@@ -59,16 +84,24 @@ MainWindow::MainWindow(QWidget *parent)
     ui->statusFilterCombo->addItems({"全部状态", "在职", "休假", "离职"});
     ui->employeeTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     ui->employeeTable->verticalHeader()->setVisible(false);
+    // 点击任意单元格都高亮整行，并保持当前选中状态清晰可见。
+    ui->employeeTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+    ui->employeeTable->setSelectionMode(QAbstractItemView::SingleSelection);
+    ui->employeeTable->setFocusPolicy(Qt::StrongFocus);
+    ui->accessLogTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    ui->accessLogTable->verticalHeader()->setVisible(false);
 
     // 新增员工按钮：打开员工录入页面
     connect(ui->newEmployeeButton, &QPushButton::clicked, this, &MainWindow::showEmployeePage);
     connect(ui->employeeManagementButton, &QPushButton::clicked,
             this, &MainWindow::showEmployeeManagementPage);
+    connect(ui->accessLogButton, &QPushButton::clicked, this, &MainWindow::showAccessLogPage);
     // 门禁核验按钮：打开人脸识别门禁页面
     connect(ui->accessButton, &QPushButton::clicked, this, &MainWindow::showAccessPage);
     // 员工页面返回按钮：回到主页
     connect(ui->employeeBackButton, &QPushButton::clicked, this, &MainWindow::showHomePage);
     connect(ui->managementBackButton, &QPushButton::clicked, this, &MainWindow::showHomePage);
+    connect(ui->accessLogBackButton, &QPushButton::clicked, this, &MainWindow::showHomePage);
     // 门禁页面返回按钮：回到主页
     connect(ui->accessBackButton, &QPushButton::clicked, this, &MainWindow::showHomePage);
     // 员工录入页-相机按钮：打开摄像头采集员工人脸
@@ -88,12 +121,16 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->editEmployeeButton, &QPushButton::clicked, this, &MainWindow::editSelectedEmployee);
     connect(ui->disableEmployeeButton, &QPushButton::clicked, this, &MainWindow::disableSelectedEmployee);
     connect(ui->deleteEmployeeButton, &QPushButton::clicked, this, &MainWindow::deleteSelectedEmployee);
+    connect(ui->queryLogButton, &QPushButton::clicked, this, &MainWindow::refreshAccessLogTable);
+    connect(ui->resetLogButton, &QPushButton::clicked, this, &MainWindow::resetAccessLogFilters);
     connect(ui->employeeTable, &QTableWidget::cellDoubleClicked,
             this, [this](int, int) { editSelectedEmployee(); });
     try
     {
         faceDetector = cv::FaceDetectorYN::create(FaceDetectionModel, "", cv::Size(320, 320));
         faceRecognizer = cv::FaceRecognizerSF::create(FaceRecognitionModel, "");
+        if (!eyeCascade.load(EyeCascadeModel))
+            throw cv::Exception(cv::Error::StsError, "无法加载眼睛检测模型", "MainWindow", __FILE__, __LINE__);
     }
     catch (const cv::Exception &e)
     {
@@ -417,6 +454,8 @@ void MainWindow::startAccessRecognition()
 
     lastLogKey.clear();
     logDebounceTimer.invalidate();
+    imageRecognitionMode = false;
+    resetBlinkDetection();
     ui->accessAreaCombo->setEnabled(false);
     ui->accessCameraButton->setEnabled(false);
     ui->accessImageButton->setEnabled(true);
@@ -430,6 +469,7 @@ void MainWindow::stopAccessRecognition()
         accessTimer->stop();
     if (accessCamera.isOpened())
         accessCamera.release();
+    resetBlinkDetection();
 
     if (ui)
     {
@@ -469,7 +509,10 @@ void MainWindow::recognizeAccessImage()
     }
     ui->accessFaceLabel->setPixmap(QPixmap::fromImage(preview));
     ui->accessFaceLabel->setText(QString());
+    currentAccessFrame = image.clone();
+    imageRecognitionMode = true;
     recognizeAccessFace();
+    imageRecognitionMode = false;
 }
 
 void MainWindow::updateAccessFrame()
@@ -499,6 +542,8 @@ void MainWindow::updateAccessFrame()
 
     ui->accessFaceLabel->setPixmap(QPixmap::fromImage(preview));
     ui->accessFaceLabel->setText(QString());
+    currentAccessFrame = frame.clone();
+    imageRecognitionMode = false;
     recognizeAccessFace();
 }
 
@@ -538,22 +583,89 @@ void MainWindow::recognizeAccessFace()
                                               bestEmployee->department)
                                          .arg(bestScore, 0, 'f', 3);
 
-        if (bestEmployee->accessAreas.contains(area))
+        if (!bestEmployee->accessAreas.contains(area))
         {
-            showAccessResult("身份核验通过，允许进入" + employeeInfo, "#2e7d32");
+            resetBlinkDetection();
+            showAccessResult("身份确认成功，无本区域权限" + employeeInfo, "#ef6c00");
+            writeAccessLogWithDebounce(bestEmployee, "无权限拒绝");
+            if (imageRecognitionMode)
+                QMessageBox::warning(this, "门禁拒绝", "身份确认成功，但无本区域权限。" + employeeInfo);
+        }
+        else if (imageRecognitionMode)
+        {
+            // 图片识别按用户选择用于测试放行，不执行连续帧眨眼检测。
+            showAccessResult("身份核验通过，门禁已开放" + employeeInfo, "#2e7d32");
             writeAccessLogWithDebounce(bestEmployee, "放行");
+            QMessageBox::information(this, "识别成功", "识别成功，门禁已开放。" + employeeInfo);
         }
         else
         {
-            showAccessResult("身份确认成功，无本区域权限" + employeeInfo, "#ef6c00");
-            writeAccessLogWithDebounce(bestEmployee, "无权限拒绝");
+            // 活体检测全过程必须保持为同一个员工，身份变化时重新开始。
+            if (blinkEmployeeNo != bestEmployee->employeeNo)
+            {
+                resetBlinkDetection();
+                blinkEmployeeNo = bestEmployee->employeeNo;
+            }
+
+            const bool eyesOpen = areEyesOpen(currentAccessFrame);
+            if (blinkState == BlinkState::WaitingOpen)
+            {
+                blinkStableFrames = eyesOpen ? blinkStableFrames + 1 : 0;
+                if (blinkStableFrames >= 2)
+                {
+                    blinkState = BlinkState::WaitingClosed;
+                    blinkStableFrames = 0;
+                }
+                showAccessResult("身份匹配成功，请自然眨眼完成活体检测" + employeeInfo,
+                                 "#1976d2");
+            }
+            else if (blinkState == BlinkState::WaitingClosed)
+            {
+                blinkStableFrames = !eyesOpen ? blinkStableFrames + 1 : 0;
+                if (blinkStableFrames >= 2)
+                {
+                    blinkState = BlinkState::WaitingReopen;
+                    blinkStableFrames = 0;
+                }
+                showAccessResult("请闭眼后重新睁开" + employeeInfo, "#1976d2");
+            }
+            else
+            {
+                blinkStableFrames = eyesOpen ? blinkStableFrames + 1 : 0;
+                if (blinkStableFrames >= 2)
+                {
+                    showAccessResult("身份核验通过，眨眼活体检测成功，允许进入"
+                                         + employeeInfo,
+                                     "#2e7d32");
+                    writeAccessLogWithDebounce(bestEmployee, "放行");
+                    resetBlinkDetection();
+                    // 一次活体核验成功后立即停止识别并释放摄像头，避免重复放行。
+                    stopAccessRecognition();
+                    QMessageBox::information(this, "识别成功",
+                                             "识别成功，门禁已开放。" + employeeInfo);
+                }
+                else
+                {
+                    showAccessResult("请重新睁开眼睛" + employeeInfo, "#1976d2");
+                }
+            }
         }
     }
     else
     {
+        resetBlinkDetection();
         showAccessResult("身份识别失败，禁止通行", "#d32f2f");
         writeAccessLogWithDebounce(nullptr, "识别失败");
+        if (imageRecognitionMode)
+            QMessageBox::warning(this, "识别失败", "身份识别失败，禁止通行。");
     }
+}
+
+void MainWindow::showAccessLogPage()
+{
+    stopAccessRecognition();
+    ui->stackedWidget->setCurrentWidget(ui->accessLogPage);
+    refreshAccessLogTable();
 }
 
 void MainWindow::showAccessResult(const QString &text, const QString &color)
@@ -818,6 +930,44 @@ void MainWindow::disableSelectedEmployee()
     refreshEmployeeTable();
 }
 
+bool MainWindow::areEyesOpen(const cv::Mat &frame)
+{
+    if (frame.empty() || eyeCascade.empty())
+        return false;
+
+    // 先复用 YuNet 定位人脸，再只在脸部上半区检测眼睛，减少背景误检。
+    faceDetector->setInputSize(frame.size());
+    cv::Mat faces;
+    faceDetector->detect(frame, faces);
+    if (faces.rows == 0)
+        return false;
+
+    cv::Rect faceRect(cvRound(faces.at<float>(0, 0)), cvRound(faces.at<float>(0, 1)),
+                      cvRound(faces.at<float>(0, 2)), cvRound(faces.at<float>(0, 3)));
+    faceRect &= cv::Rect(0, 0, frame.cols, frame.rows);
+    if (faceRect.width <= 0 || faceRect.height <= 0)
+        return false;
+
+    cv::Rect upperFace(faceRect.x, faceRect.y, faceRect.width,
+                       std::max(1, static_cast<int>(faceRect.height * 0.62)));
+    cv::Mat gray;
+    cv::cvtColor(frame(upperFace), gray, cv::COLOR_BGR2GRAY);
+    cv::equalizeHist(gray, gray);
+
+    std::vector<cv::Rect> eyes;
+    eyeCascade.detectMultiScale(gray, eyes, 1.1, 3, 0,
+                                cv::Size(std::max(12, faceRect.width / 10),
+                                         std::max(8, faceRect.height / 12)));
+    return eyes.size() >= 1;
+}
+
+void MainWindow::resetBlinkDetection()
+{
+    blinkState = BlinkState::WaitingOpen;
+    blinkStableFrames = 0;
+    blinkEmployeeNo.clear();
+}
+
 void MainWindow::deleteSelectedEmployee()
 {
     const int index = selectedEmployeeIndex();
@@ -828,12 +978,19 @@ void MainWindow::deleteSelectedEmployee()
     }
 
     const EmployeeFaceRecord &employee = managementEmployees.at(index);
-    if (QMessageBox::warning(
-            this, "确认删除",
-            QString("确定永久删除员工 %1（%2）吗？\n此操作会删除员工资料和人脸特征，且无法恢复。")
-                .arg(employee.name, employee.employeeNo),
-            QMessageBox::Yes | QMessageBox::No, QMessageBox::No)
-        != QMessageBox::Yes)
+    QMessageBox confirmBox(this);
+    confirmBox.setIcon(QMessageBox::Critical);
+    confirmBox.setWindowTitle("危险操作：永久删除员工");
+    confirmBox.setText(QString("确定永久删除员工 %1（%2）吗？")
+                           .arg(employee.name, employee.employeeNo));
+    confirmBox.setInformativeText(
+        "删除后，员工基础资料和人脸特征将无法恢复。\n历史通行日志会继续保留。"
+        "\n如果只是暂时停用，请选择“禁用员工”。");
+    confirmBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
+    confirmBox.setDefaultButton(QMessageBox::Cancel);
+    confirmBox.button(QMessageBox::Yes)->setText("确认永久删除");
+    confirmBox.button(QMessageBox::Cancel)->setText("取消");
+    if (confirmBox.exec() != QMessageBox::Yes)
         return;
 
     QString errorMessage;
@@ -843,4 +1000,52 @@ void MainWindow::deleteSelectedEmployee()
         return;
     }
     refreshEmployeeTable();
+}
+
+void MainWindow::refreshAccessLogTable()
+{
+    const QString area = ui->logAreaCombo->currentIndex() == 0
+                             ? QString() : ui->logAreaCombo->currentText();
+    const QString result = ui->logResultCombo->currentIndex() == 0
+                               ? QString() : ui->logResultCombo->currentText();
+
+    QString errorMessage;
+    const QList<AccessLogRecord> logs =
+        MyDatabase::instance()->queryAccessLogs(area, result, &errorMessage);
+    if (!errorMessage.isEmpty())
+    {
+        QMessageBox::critical(this, "查询失败", errorMessage);
+        return;
+    }
+
+    ui->accessLogTable->setRowCount(logs.size());
+    for (int row = 0; row < logs.size(); ++row)
+    {
+        const AccessLogRecord &log = logs.at(row);
+        const QStringList values = {log.accessTime, log.employeeNo, log.name,
+                                    log.department, log.accessArea, log.result};
+        for (int column = 0; column < values.size(); ++column)
+        {
+            auto *item = new QTableWidgetItem(values.at(column));
+            item->setTextAlignment(Qt::AlignCenter);
+            ui->accessLogTable->setItem(row, column, item);
+        }
+
+        QColor resultColor("#d32f2f");
+        if (log.result == "放行")
+            resultColor = QColor("#2e7d32");
+        else if (log.result == "无权限拒绝")
+            resultColor = QColor("#ef6c00");
+        ui->accessLogTable->item(row, 5)->setForeground(resultColor);
+        QFont resultFont = ui->accessLogTable->item(row, 5)->font();
+        resultFont.setBold(true);
+        ui->accessLogTable->item(row, 5)->setFont(resultFont);
+    }
+}
+
+void MainWindow::resetAccessLogFilters()
+{
+    ui->logAreaCombo->setCurrentIndex(0);
+    ui->logResultCombo->setCurrentIndex(0);
+    refreshAccessLogTable();
 }
