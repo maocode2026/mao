@@ -1,0 +1,552 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>900</width>
+    <height>669</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>800</width>
+    <height>600</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>医院门禁人脸识别系统</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="centralLayout">
+    <item>
+     <widget class="QStackedWidget" name="stackedWidget">
+      <property name="currentIndex">
+       <number>0</number>
+      </property>
+      <widget class="QWidget" name="homePage">
+       <layout class="QVBoxLayout" name="homeLayout">
+        <property name="leftMargin">
+         <number>110</number>
+        </property>
+        <property name="topMargin">
+         <number>80</number>
+        </property>
+        <property name="rightMargin">
+         <number>110</number>
+        </property>
+        <property name="bottomMargin">
+         <number>100</number>
+        </property>
+        <item>
+         <widget class="QLabel" name="homeTitleLabel">
+          <property name="font">
+           <font>
+            <pointsize>24</pointsize>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="text">
+           <string>医院员工门禁管理</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignmentFlag::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="homeTopSpacer">
+          <property name="orientation">
+           <enum>Qt::Orientation::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>60</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="newEmployeeButton">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>90</height>
+           </size>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>18</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>新增员工</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="homeMidSpacer">
+          <property name="orientation">
+           <enum>Qt::Orientation::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>35</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="employeeManagementButton">
+          <property name="minimumSize"><size><width>0</width><height>90</height></size></property>
+          <property name="font"><font><pointsize>18</pointsize></font></property>
+          <property name="text"><string>员工档案管理</string></property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="homeManagementSpacer"><property name="orientation"><enum>Qt::Orientation::Vertical</enum></property><property name="sizeHint" stdset="0"><size><width>20</width><height>35</height></size></property></spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="accessButton">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>90</height>
+           </size>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>18</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>门禁人脸识别</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="homeBottomSpacer">
+          <property name="orientation">
+           <enum>Qt::Orientation::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>60</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="employeePage">
+       <layout class="QVBoxLayout" name="employeePageLayout">
+        <item>
+         <layout class="QHBoxLayout" name="employeeHeaderLayout">
+          <item>
+           <widget class="QPushButton" name="employeeBackButton">
+            <property name="text">
+             <string>返回主页</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="employeeTitleLabel">
+            <property name="font">
+             <font>
+              <pointsize>20</pointsize>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>新增员工</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignmentFlag::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="employeeHeaderSpacer">
+            <property name="orientation">
+             <enum>Qt::Orientation::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>80</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="employeeContentLayout">
+          <item>
+           <widget class="QGroupBox" name="employeeInfoGroup">
+            <property name="title">
+             <string>员工基础信息</string>
+            </property>
+            <layout class="QFormLayout" name="employeeFormLayout">
+             <property name="horizontalSpacing">
+              <number>20</number>
+             </property>
+             <property name="verticalSpacing">
+              <number>20</number>
+             </property>
+             <item row="0" column="0">
+              <widget class="QLabel" name="employeeNoLabel">
+               <property name="text">
+                <string>工号 *</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QLineEdit" name="employeeNoEdit">
+               <property name="placeholderText">
+                <string>请输入唯一工号</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="employeeNameLabel">
+               <property name="text">
+                <string>姓名 *</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QLineEdit" name="employeeNameEdit">
+               <property name="placeholderText">
+                <string>请输入姓名</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="0">
+              <widget class="QLabel" name="departmentLabel">
+               <property name="text">
+                <string>科室</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="QComboBox" name="departmentCombo"/>
+             </item>
+             <item row="3" column="0">
+              <widget class="QLabel" name="positionLabel">
+               <property name="text">
+                <string>岗位</string>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="1">
+              <widget class="QComboBox" name="positionCombo"/>
+             </item>
+             <item row="4" column="0">
+              <widget class="QLabel" name="phoneLabel">
+               <property name="text">
+                <string>联系电话 *</string>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="1">
+              <widget class="QLineEdit" name="phoneEdit">
+               <property name="placeholderText">
+                <string>请输入联系电话</string>
+               </property>
+              </widget>
+             </item>
+             <item row="5" column="0">
+              <widget class="QLabel" name="employeeAccessLabel">
+               <property name="text"><string>区域权限</string></property>
+              </widget>
+             </item>
+             <item row="5" column="1">
+              <widget class="QWidget" name="employeeAccessWidget" native="true">
+               <layout class="QVBoxLayout" name="employeeAccessLayout">
+                <property name="leftMargin"><number>0</number></property>
+                <property name="topMargin"><number>0</number></property>
+                <property name="rightMargin"><number>0</number></property>
+                <property name="bottomMargin"><number>0</number></property>
+                <item><widget class="QCheckBox" name="pharmacyPermissionCheck"><property name="text"><string>药房</string></property></widget></item>
+                <item><widget class="QCheckBox" name="doctorOfficePermissionCheck"><property name="text"><string>医生办公室</string></property></widget></item>
+                <item><widget class="QCheckBox" name="warehousePermissionCheck"><property name="text"><string>耗材库房</string></property></widget></item>
+               </layout>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QGroupBox" name="employeeFaceGroup">
+            <property name="title">
+             <string>人脸采集</string>
+            </property>
+            <layout class="QVBoxLayout" name="employeeFaceLayout">
+             <item>
+              <widget class="QLabel" name="employeeFaceLabel">
+               <property name="minimumSize">
+                <size>
+                 <width>360</width>
+                 <height>320</height>
+                </size>
+               </property>
+               <property name="frameShape">
+                <enum>QFrame::Shape::Box</enum>
+               </property>
+               <property name="text">
+                <string>尚未采集人脸</string>
+               </property>
+               <property name="scaledContents">
+                <bool>true</bool>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignmentFlag::AlignCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="employeeFeatureLabel">
+               <property name="text">
+                <string>未提取人脸特征</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignmentFlag::AlignCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="employeeFaceButtonsLayout">
+               <item>
+                <widget class="QPushButton" name="employeeCameraButton">
+                 <property name="text">
+                  <string>摄像头采集</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="employeeImageButton">
+                 <property name="text">
+                  <string>选择图片</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QPushButton" name="saveEmployeeButton">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>46</height>
+           </size>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>13</pointsize>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="text">
+           <string>保存员工信息和人脸特征</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="employeeManagementPage">
+       <layout class="QVBoxLayout" name="employeeManagementLayout">
+        <item><layout class="QHBoxLayout" name="managementHeaderLayout"><item><widget class="QPushButton" name="managementBackButton"><property name="text"><string>返回主页</string></property></widget></item><item><widget class="QLabel" name="managementTitleLabel"><property name="font"><font><pointsize>20</pointsize><bold>true</bold></font></property><property name="text"><string>员工档案管理</string></property><property name="alignment"><set>Qt::AlignmentFlag::AlignCenter</set></property></widget></item><item><spacer name="managementHeaderSpacer"><property name="orientation"><enum>Qt::Orientation::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>80</width><height>20</height></size></property></spacer></item></layout></item>
+        <item><layout class="QHBoxLayout" name="managementFilterLayout">
+         <item><widget class="QLabel" name="departmentFilterLabel"><property name="text"><string>科室：</string></property></widget></item><item><widget class="QComboBox" name="departmentFilterCombo"/></item>
+         <item><widget class="QLabel" name="positionFilterLabel"><property name="text"><string>岗位：</string></property></widget></item><item><widget class="QComboBox" name="positionFilterCombo"/></item>
+         <item><widget class="QLabel" name="statusFilterLabel"><property name="text"><string>状态：</string></property></widget></item><item><widget class="QComboBox" name="statusFilterCombo"/></item>
+         <item><widget class="QPushButton" name="queryEmployeeButton"><property name="text"><string>查询</string></property></widget></item><item><widget class="QPushButton" name="resetEmployeeButton"><property name="text"><string>刷新/重置</string></property></widget></item>
+        </layout></item>
+        <item><widget class="QTableWidget" name="employeeTable"><property name="selectionBehavior"><enum>QAbstractItemView::SelectionBehavior::SelectRows</enum></property><property name="selectionMode"><enum>QAbstractItemView::SelectionMode::SingleSelection</enum></property><property name="editTriggers"><set>QAbstractItemView::EditTrigger::NoEditTriggers</set></property><property name="alternatingRowColors"><bool>true</bool></property><property name="columnCount"><number>7</number></property><column><property name="text"><string>工号</string></property></column><column><property name="text"><string>姓名</string></property></column><column><property name="text"><string>科室</string></property></column><column><property name="text"><string>岗位</string></property></column><column><property name="text"><string>联系电话</string></property></column><column><property name="text"><string>门禁权限</string></property></column><column><property name="text"><string>人员状态</string></property></column></widget></item>
+        <item><layout class="QHBoxLayout" name="managementButtonsLayout"><item><spacer name="managementButtonsSpacer"><property name="orientation"><enum>Qt::Orientation::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>40</width><height>20</height></size></property></spacer></item><item><widget class="QPushButton" name="editEmployeeButton"><property name="minimumSize"><size><width>120</width><height>38</height></size></property><property name="text"><string>编辑员工</string></property></widget></item><item><widget class="QPushButton" name="disableEmployeeButton"><property name="minimumSize"><size><width>120</width><height>38</height></size></property><property name="text"><string>禁用员工</string></property></widget></item></layout></item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="accessPage">
+       <layout class="QVBoxLayout" name="accessPageLayout">
+        <item>
+         <layout class="QHBoxLayout" name="accessHeaderLayout">
+          <item>
+           <widget class="QPushButton" name="accessBackButton">
+            <property name="text">
+             <string>返回主页</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="accessTitleLabel">
+            <property name="font">
+             <font>
+              <pointsize>20</pointsize>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>门禁人脸识别</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignmentFlag::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="accessHeaderSpacer">
+            <property name="orientation">
+             <enum>Qt::Orientation::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>80</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="accessAreaLayout">
+          <item><spacer name="accessAreaLeftSpacer"><property name="orientation"><enum>Qt::Orientation::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>40</width><height>20</height></size></property></spacer></item>
+          <item><widget class="QLabel" name="accessAreaLabel"><property name="text"><string>当前门禁区域：</string></property></widget></item>
+          <item><widget class="QComboBox" name="accessAreaCombo"><item><property name="text"><string>药房</string></property></item><item><property name="text"><string>医生办公室</string></property></item><item><property name="text"><string>耗材库房</string></property></item></widget></item>
+          <item><spacer name="accessAreaRightSpacer"><property name="orientation"><enum>Qt::Orientation::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>40</width><height>20</height></size></property></spacer></item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QLabel" name="accessHintLabel">
+          <property name="text">
+           <string>采集现场人脸后，将与数据库内全部员工的 128 维特征进行比对</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignmentFlag::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="accessFaceLabel">
+          <property name="minimumSize">
+           <size>
+            <width>520</width>
+            <height>390</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>650</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="frameShape">
+           <enum>QFrame::Shape::Box</enum>
+          </property>
+          <property name="text">
+           <string>请采集门禁人脸</string>
+          </property>
+          <property name="scaledContents">
+           <bool>true</bool>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignmentFlag::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="accessResultLabel">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>76</height>
+           </size>
+          </property>
+          <property name="wordWrap">
+           <bool>true</bool>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>14</pointsize>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="frameShape">
+           <enum>QFrame::Shape::StyledPanel</enum>
+          </property>
+          <property name="text">
+           <string>等待识别</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignmentFlag::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="accessButtonsLayout">
+          <item>
+           <widget class="QPushButton" name="accessCameraButton">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>42</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>开始识别</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="accessImageButton">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>42</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>停止识别</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="accessFileButton">
+            <property name="minimumSize"><size><width>0</width><height>42</height></size></property>
+            <property name="text"><string>选择图片识别</string></property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>900</width>
+     <height>21</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
