@@ -100,6 +100,7 @@ public:
     QSpacerItem *managementButtonsSpacer;
     QPushButton *editEmployeeButton;
     QPushButton *disableEmployeeButton;
+    QPushButton *deleteEmployeeButton;
     QWidget *accessPage;
     QVBoxLayout *accessPageLayout;
     QHBoxLayout *accessHeaderLayout;
@@ -470,6 +471,12 @@ public:
 
         managementButtonsLayout->addWidget(disableEmployeeButton);
 
+        deleteEmployeeButton = new QPushButton(employeeManagementPage);
+        deleteEmployeeButton->setObjectName("deleteEmployeeButton");
+        deleteEmployeeButton->setMinimumSize(QSize(120, 38));
+
+        managementButtonsLayout->addWidget(deleteEmployeeButton);
+
 
         employeeManagementLayout->addLayout(managementButtonsLayout);
 
@@ -649,6 +656,7 @@ public:
         ___qtablewidgetitem6->setText(QCoreApplication::translate("MainWindow", "\344\272\272\345\221\230\347\212\266\346\200\201", nullptr));
         editEmployeeButton->setText(QCoreApplication::translate("MainWindow", "\347\274\226\350\276\221\345\221\230\345\267\245", nullptr));
         disableEmployeeButton->setText(QCoreApplication::translate("MainWindow", "\347\246\201\347\224\250\345\221\230\345\267\245", nullptr));
+        deleteEmployeeButton->setText(QCoreApplication::translate("MainWindow", "\345\210\240\351\231\244\345\221\230\345\267\245", nullptr));
         accessBackButton->setText(QCoreApplication::translate("MainWindow", "\350\277\224\345\233\236\344\270\273\351\241\265", nullptr));
         accessTitleLabel->setText(QCoreApplication::translate("MainWindow", "\351\227\250\347\246\201\344\272\272\350\204\270\350\257\206\345\210\253", nullptr));
         accessAreaLabel->setText(QCoreApplication::translate("MainWindow", "\345\275\223\345\211\215\351\227\250\347\246\201\345\214\272\345\237\237\357\274\232", nullptr));

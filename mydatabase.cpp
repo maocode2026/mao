@@ -1,7 +1,36 @@
 #include "mydatabase.h"
 #include <QDebug>
 #include <QDateTime>
-#include <stdexcept>
+#include <QThread>
+
+namespace
+{
+bool isDatabaseBusy(const QSqlError &error)
+{
+    const QString message = error.text();
+    const QString code = error.nativeErrorCode();
+    return code == "5" || code == "6"
+           || message.contains("database is locked", Qt::CaseInsensitive)
+           || message.contains("database is busy", Qt::CaseInsensitive);
+}
+
+// SQLite 同一时刻只允许一个写事务。遇到临时写锁时等待后重试，
+// 避免数据库管理工具或上次异常退出造成程序直接崩溃。
+bool execSqlWithRetry(QSqlQuery &query, const QString &sql, int retryCount = 20)
+{
+    for (int attempt = 0; attempt <= retryCount; ++attempt)
+    {
+        if (query.exec(sql))
+            return true;
+        if (!isDatabaseBusy(query.lastError()) || attempt == retryCount)
+            return false;
+
+        query.finish();
+        QThread::msleep(250);
+    }
+    return false;
+}
+}
 
 
 MyDatabase::MyDatabase(QObject *parent)
@@ -11,15 +40,20 @@ MyDatabase::MyDatabase(QObject *parent)
     // 初始化数据库
     db = QSqlDatabase::addDatabase("QSQLITE");
     db.setDatabaseName("D:/C/qt/demo.db");
+    // 驱动层等待锁释放；与下方重试配合，最长约等待 10 秒。
+    db.setConnectOptions("QSQLITE_BUSY_TIMEOUT=10000");
     bool ok = db.open();
     if (!ok)
     {
-        throw std::runtime_error(db.lastError().text().toStdString());
+        qCritical() << "数据库打开失败：" << db.lastError().text();
+        return;
     }
 
+    QSqlQuery query(db);
+    execSqlWithRetry(query, "pragma busy_timeout=10000;");
+
     QString sql = "create table if not exists userinfo(id int primary key,name text not null, age int check(age>0)); ";
-    QSqlQuery query;
-    bool ok1 = query.exec(sql);
+    bool ok1 = execSqlWithRetry(query, sql);
     if(!ok1)
     {
         qDebug()<<"create table error:"<<query.lastError().text();
@@ -39,14 +73,14 @@ MyDatabase::MyDatabase(QObject *parent)
             created_at text not null default (datetime('now', 'localtime'))
         );
     )";
-    if (!query.exec(sql))
+    if (!execSqlWithRetry(query, sql))
     {
-        throw std::runtime_error(query.lastError().text().toStdString());
+        qCritical() << "旧员工表初始化失败：" << query.lastError().text();
     }
 
     QString accessControlError;
     if (!initializeAccessControlTables(&accessControlError))
-        throw std::runtime_error(accessControlError.toStdString());
+        qCritical() << accessControlError;
 
 
 
@@ -177,6 +211,15 @@ bool MyDatabase::deleteUserInfo(int id)//删除
 
 bool MyDatabase::initializeAccessControlTables(QString *errorMessage)
 {
+    if (accessControlTablesReady)
+        return true;
+    if (!db.isOpen())
+    {
+        if (errorMessage)
+            *errorMessage = "数据库没有打开：" + db.lastError().text();
+        return false;
+    }
+
     QSqlQuery query(db);
     const QStringList statements = {
         R"(
@@ -214,7 +257,7 @@ bool MyDatabase::initializeAccessControlTables(QString *errorMessage)
 
     for (const QString &sql : statements)
     {
-        if (!query.exec(sql))
+        if (!execSqlWithRetry(query, sql))
         {
             if (errorMessage)
                 *errorMessage = "初始化门禁数据库失败：" + query.lastError().text();
@@ -226,7 +269,7 @@ bool MyDatabase::initializeAccessControlTables(QString *errorMessage)
     // 兼容旧版本 staff_face.employee_no：补充 staff_id 并同步已有工号。
     bool hasStaffId = false;
     staffFaceHasLegacyEmployeeNo = false;
-    if (!query.exec("pragma table_info(staff_face);"))
+    if (!execSqlWithRetry(query, "pragma table_info(staff_face);"))
     {
         if (errorMessage)
             *errorMessage = "读取员工表结构失败：" + query.lastError().text();
@@ -240,7 +283,7 @@ bool MyDatabase::initializeAccessControlTables(QString *errorMessage)
     }
     if (!hasStaffId)
     {
-        if (!query.exec("alter table staff_face add column staff_id text;"))
+        if (!execSqlWithRetry(query, "alter table staff_face add column staff_id text;"))
         {
             if (errorMessage)
                 *errorMessage = "升级员工表失败：" + query.lastError().text();
@@ -248,13 +291,13 @@ bool MyDatabase::initializeAccessControlTables(QString *errorMessage)
         }
     }
     if (staffFaceHasLegacyEmployeeNo
-        && !query.exec("update staff_face set staff_id=employee_no where staff_id is null or staff_id='';"))
+        && !execSqlWithRetry(query, "update staff_face set staff_id=employee_no where staff_id is null or staff_id='';"))
     {
         if (errorMessage)
             *errorMessage = "同步员工工号失败：" + query.lastError().text();
         return false;
     }
-    if (!query.exec("create unique index if not exists idx_staff_face_staff_id on staff_face(staff_id);"))
+    if (!execSqlWithRetry(query, "create unique index if not exists idx_staff_face_staff_id on staff_face(staff_id);"))
     {
         if (errorMessage)
             *errorMessage = "创建工号索引失败：" + query.lastError().text();
@@ -279,7 +322,7 @@ bool MyDatabase::initializeAccessControlTables(QString *errorMessage)
             select employee_no, name, department, position, phone,
                    '在职', '', face_feature from employees;
           )";
-    if (!query.exec(migrateSql))
+    if (!execSqlWithRetry(query, migrateSql))
     {
         if (errorMessage)
             *errorMessage = "迁移旧员工数据失败：" + query.lastError().text();
@@ -425,6 +468,22 @@ bool MyDatabase::disableEmployee(const QString &staffId, QString *errorMessage)
             *errorMessage = "禁用员工失败：" + query.lastError().text();
         return false;
     }
+    accessControlTablesReady = true;
+    return true;
+}
+
+bool MyDatabase::deleteEmployee(const QString &staffId, QString *errorMessage)
+{
+    QSqlQuery query(db);
+    query.prepare("delete from staff_face where staff_id=:staff_id;");
+    query.bindValue(":staff_id", staffId);
+    if (!query.exec() || query.numRowsAffected() != 1)
+    {
+        if (errorMessage)
+            *errorMessage = "删除员工失败：" + query.lastError().text();
+        return false;
+    }
+    // 通行日志作为历史审计记录保留，不随员工档案一起删除。
     return true;
 }
 

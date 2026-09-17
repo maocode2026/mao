@@ -87,6 +87,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->resetEmployeeButton, &QPushButton::clicked, this, &MainWindow::resetEmployeeFilters);
     connect(ui->editEmployeeButton, &QPushButton::clicked, this, &MainWindow::editSelectedEmployee);
     connect(ui->disableEmployeeButton, &QPushButton::clicked, this, &MainWindow::disableSelectedEmployee);
+    connect(ui->deleteEmployeeButton, &QPushButton::clicked, this, &MainWindow::deleteSelectedEmployee);
     connect(ui->employeeTable, &QTableWidget::cellDoubleClicked,
             this, [this](int, int) { editSelectedEmployee(); });
     try
@@ -314,6 +315,45 @@ void MainWindow::saveEmployee()
         return;
     }
 
+    QString errorMessage;
+    const QList<EmployeeFaceRecord> existingEmployees =
+        MyDatabase::instance()->queryEmployees(QString(), QString(), QString(), &errorMessage);
+    const double duplicateThreshold = MyDatabase::instance()->faceMatchThreshold(&errorMessage);
+    if (!errorMessage.isEmpty())
+    {
+        QMessageBox::critical(this, "数据库错误", errorMessage);
+        return;
+    }
+
+    // 新员工入库前与全部员工（包括休假、离职）比对，防止同一人重复建档。
+    double bestScore = -std::numeric_limits<double>::infinity();
+    const EmployeeFaceRecord *duplicateEmployee = nullptr;
+    const int expectedBytes = static_cast<int>(128 * sizeof(float));
+    for (const EmployeeFaceRecord &existing : existingEmployees)
+    {
+        if (existing.faceFeature.size() != expectedBytes)
+            continue;
+        cv::Mat storedFeature(1, 128, CV_32F);
+        std::memcpy(storedFeature.data, existing.faceFeature.constData(),
+                    static_cast<size_t>(expectedBytes));
+        const double score = faceRecognizer->match(
+            employeeFaceFeature, storedFeature, cv::FaceRecognizerSF::FR_COSINE);
+        if (score > bestScore)
+        {
+            bestScore = score;
+            duplicateEmployee = &existing;
+        }
+    }
+    if (duplicateEmployee && bestScore >= duplicateThreshold)
+    {
+        QMessageBox::warning(
+            this, "人脸已存在",
+            QString("该人脸已录入，不能重复添加。\n已有员工：%1（工号：%2）\n匹配度：%3")
+                .arg(duplicateEmployee->name, duplicateEmployee->employeeNo)
+                .arg(bestScore, 0, 'f', 3));
+        return;
+    }
+
     const cv::Mat continuousFeature = employeeFaceFeature.isContinuous()
                                           ? employeeFaceFeature
                                           : employeeFaceFeature.clone();
@@ -321,7 +361,6 @@ void MainWindow::saveEmployee()
         reinterpret_cast<const char *>(continuousFeature.ptr<float>()),
         static_cast<int>(continuousFeature.total() * continuousFeature.elemSize()));
 
-    QString errorMessage;
     if (!MyDatabase::instance()->addEmployee(employee, &errorMessage))
     {
         QMessageBox::critical(this, "保存失败", errorMessage);
@@ -774,6 +813,33 @@ void MainWindow::disableSelectedEmployee()
     if (!MyDatabase::instance()->disableEmployee(employee.employeeNo, &errorMessage))
     {
         QMessageBox::critical(this, "禁用失败", errorMessage);
+        return;
+    }
+    refreshEmployeeTable();
+}
+
+void MainWindow::deleteSelectedEmployee()
+{
+    const int index = selectedEmployeeIndex();
+    if (index < 0)
+    {
+        QMessageBox::information(this, "提示", "请先选择一名员工。");
+        return;
+    }
+
+    const EmployeeFaceRecord &employee = managementEmployees.at(index);
+    if (QMessageBox::warning(
+            this, "确认删除",
+            QString("确定永久删除员工 %1（%2）吗？\n此操作会删除员工资料和人脸特征，且无法恢复。")
+                .arg(employee.name, employee.employeeNo),
+            QMessageBox::Yes | QMessageBox::No, QMessageBox::No)
+        != QMessageBox::Yes)
+        return;
+
+    QString errorMessage;
+    if (!MyDatabase::instance()->deleteEmployee(employee.employeeNo, &errorMessage))
+    {
+        QMessageBox::critical(this, "删除失败", errorMessage);
         return;
     }
     refreshEmployeeTable();

@@ -40,6 +40,7 @@ private slots:
     void resetEmployeeFilters();
     void editSelectedEmployee();
     void disableSelectedEmployee();
+    void deleteSelectedEmployee();
 
 private:
     bool captureFromCamera(cv::Mat &image, QString &errorMessage);

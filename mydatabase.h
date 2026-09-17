@@ -79,6 +79,7 @@ public:
                         bool updateFaceFeature,
                         QString *errorMessage = nullptr);
     bool disableEmployee(const QString &staffId, QString *errorMessage = nullptr);
+    bool deleteEmployee(const QString &staffId, QString *errorMessage = nullptr);
     // 只返回“在职”员工，离职和休假员工不会进入人脸比对集合。
     QList<EmployeeFaceRecord> queryEmployeeFaces(QString *errorMessage = nullptr);
     double faceMatchThreshold(QString *errorMessage = nullptr);
@@ -91,6 +92,7 @@ private:
 
     QSqlDatabase db;
     bool staffFaceHasLegacyEmployeeNo = false;
+    bool accessControlTablesReady = false;
 };
 
 #endif // MYDATABASE_H
