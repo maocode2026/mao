@@ -5,44 +5,44 @@
 
 namespace
 {
-bool isDatabaseBusy(const QSqlError &error)
-{
-    const QString message = error.text();
-    const QString code = error.nativeErrorCode();
-    return code == "5" || code == "6"
-           || message.contains("database is locked", Qt::CaseInsensitive)
-           || message.contains("database is busy", Qt::CaseInsensitive);
-}
-
-// SQLite 同一时刻只允许一个写事务。遇到临时写锁时等待后重试，
-// 避免数据库管理工具或上次异常退出造成程序直接崩溃。
-bool execSqlWithRetry(QSqlQuery &query, const QString &sql, int retryCount = 20)
-{
-    for (int attempt = 0; attempt <= retryCount; ++attempt)
+    bool isDatabaseBusy(const QSqlError &error)//判定数据库锁
     {
-        if (query.exec(sql))
-            return true;
-        if (!isDatabaseBusy(query.lastError()) || attempt == retryCount)
-            return false;
-
-        query.finish();
-        QThread::msleep(250);
+        const QString message = error.text();
+        const QString code = error.nativeErrorCode();
+        return code == "5" || code == "6"
+               || message.contains("database is locked", Qt::CaseInsensitive)
+               || message.contains("database is busy", Qt::CaseInsensitive);
     }
-    return false;
-}
 
-bool execPreparedWithRetry(QSqlQuery &query, int retryCount = 20)
-{
-    for (int attempt = 0; attempt <= retryCount; ++attempt)
+    // SQLite 同一时刻只允许一个写事务。遇到临时写锁时等待后重试，
+    // 避免数据库管理工具或上次异常退出造成程序直接崩溃。
+    bool execSqlWithRetry(QSqlQuery &query, const QString &sql, int retryCount = 20)
     {
-        if (query.exec())
-            return true;
-        if (!isDatabaseBusy(query.lastError()) || attempt == retryCount)
-            return false;
-        QThread::msleep(250);
+        for (int attempt = 0; attempt <= retryCount; ++attempt)
+        {
+            if (query.exec(sql))
+                return true;
+            if (!isDatabaseBusy(query.lastError()) || attempt == retryCount)
+                return false;
+
+            query.finish();
+            QThread::msleep(250);
+        }
+        return false;
     }
-    return false;
-}
+
+    bool execPreparedWithRetry(QSqlQuery &query, int retryCount = 20)
+    {
+        for (int attempt = 0; attempt <= retryCount; ++attempt)
+        {
+            if (query.exec())
+                return true;
+            if (!isDatabaseBusy(query.lastError()) || attempt == retryCount)
+                return false;
+            QThread::msleep(250);
+        }
+        return false;
+    }
 }
 
 
@@ -221,7 +221,7 @@ bool MyDatabase::deleteUserInfo(int id)//删除
     }
     return true;
 }
-
+//初始化门禁数据库
 bool MyDatabase::initializeAccessControlTables(QString *errorMessage)
 {
     if (accessControlTablesReady)

@@ -23,26 +23,28 @@
 
 namespace
 {
-const char *FaceDetectionModel = "D:/opencv4.5.5-MinGw7.3.0/face_detection_yunet_2022mar.onnx";
-const char *FaceRecognitionModel = "D:/opencv4.5.5-MinGw7.3.0/face_recognition_sface_2021dec.onnx";
-const char *EyeCascadeModel = "D:/opencv4.5.5-MinGw7.3.0/etc/haarcascades/haarcascade_eye_tree_eyeglasses.xml";
+    //opencv路径
+    const char *FaceDetectionModel = "D:/opencv4.5.5-MinGw7.3.0/face_detection_yunet_2022mar.onnx";
+    const char *FaceRecognitionModel = "D:/opencv4.5.5-MinGw7.3.0/face_recognition_sface_2021dec.onnx";
+    const char *EyeCascadeModel = "D:/opencv4.5.5-MinGw7.3.0/etc/haarcascades/haarcascade_eye_tree_eyeglasses.xml";
 
-QImage matToQImage(const cv::Mat &image)
-{
-    if (image.empty())
-        return QImage();
+    //Mat图转qt QImage
+    QImage matToQImage(const cv::Mat &image)
+    {
+        if (image.empty())
+            return QImage();
 
-    if (image.type() == CV_8UC3)
-        return QImage(image.data, image.cols, image.rows,
-                      static_cast<int>(image.step), QImage::Format_BGR888).copy();
-    if (image.type() == CV_8UC1)
-        return QImage(image.data, image.cols, image.rows,
-                      static_cast<int>(image.step), QImage::Format_Grayscale8).copy();
+        if (image.type() == CV_8UC3)
+            return QImage(image.data, image.cols, image.rows,
+                          static_cast<int>(image.step), QImage::Format_BGR888).copy();
+        if (image.type() == CV_8UC1)
+            return QImage(image.data, image.cols, image.rows,
+                          static_cast<int>(image.step), QImage::Format_Grayscale8).copy();
 
-    cv::Mat converted;
-    image.convertTo(converted, CV_8U);
-    return matToQImage(converted);
-}
+        cv::Mat converted;
+        image.convertTo(converted, CV_8U);
+        return matToQImage(converted);
+    }
 }
 
 MainWindow::MainWindow(QWidget *parent)
@@ -51,6 +53,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     setWindowTitle("医院门禁人脸识别系统");
     setStyleSheet(R"(
+    //全局QSS样式表，美化控件外观
         QMainWindow, QWidget { background: #f5f7fa; color: #263238; font-size: 14px; }
         QGroupBox { background: white; border: 1px solid #dfe5ec; border-radius: 8px;
                     margin-top: 12px; padding: 12px; font-weight: 600; }
@@ -1031,11 +1034,15 @@ void MainWindow::refreshAccessLogTable()
             ui->accessLogTable->setItem(row, column, item);
         }
 
-        QColor resultColor("#d32f2f");
+        QColor resultColor(0xd32f2f);
         if (log.result == "放行")
-            resultColor = QColor("#2e7d32");
+        {
+            resultColor = QColor(0x2e7d32);
+        }
         else if (log.result == "无权限拒绝")
-            resultColor = QColor("#ef6c00");
+        {
+            resultColor = QColor(0xef6c00);
+        }
         ui->accessLogTable->item(row, 5)->setForeground(resultColor);
         QFont resultFont = ui->accessLogTable->item(row, 5)->font();
         resultFont.setBold(true);
